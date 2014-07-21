@@ -1,0 +1,5 @@
+wlmessage (0.0.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Philippe Coval <rzr@users.sf.net>  Mon, 21 Jul 2014 13:27:18 +0200
