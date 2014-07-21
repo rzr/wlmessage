@@ -7,8 +7,9 @@
 
 #include "window.h"
 #include "text-client-protocol.h"
+#include <xdg-shell-client-protocol.h>
+#include "types.h"
 #define MAX_LINES 6
-
 
 struct message_window {
 	struct window *window;
@@ -606,6 +607,21 @@ redraw_handler (struct widget *widget, void *data)
 	cairo_destroy (cr);
 }
 
+
+#include <pthread.h>
+#include <unistd.h>
+
+void *task(void *arg)
+{
+  printf("%s:%d: todo: %s\n", __FILE__ , __LINE__ , __PRETTY_FUNCTION__);
+  int delay = random() % 100000;
+  usleep(delay);
+  printf("%d\n", delay );
+  xdg_surface_unset_minimized( message_window->window->xdg_surface );
+  pthread_exit(NULL);
+}
+
+
 static void
 key_handler (struct window *window, struct input *input, uint32_t time,
 		 uint32_t key, uint32_t sym, enum wl_keyboard_key_state state,
@@ -618,6 +634,16 @@ key_handler (struct window *window, struct input *input, uint32_t time,
 
 	if (state == WL_KEYBOARD_KEY_STATE_RELEASED)
 		return;
+	
+	{ //hack to test un-minimize from application
+	  if (sym == XKB_KEY_Escape ) {
+	    printf("%s:%d: todo: %s\n", __FILE__ , __LINE__ , __PRETTY_FUNCTION__);
+	    xdg_surface_set_minimized( message_window->window->xdg_surface );
+	    int rc=0;
+	    pthread_t thread;
+	    rc = pthread_create(&thread, NULL, task, NULL);
+	  }
+	}
 
 	if (sym == XKB_KEY_Return || sym == XKB_KEY_KP_Enter) {
 		if (entry)
@@ -727,7 +753,6 @@ message_window_create (struct display *display, char *message, char *title, char
 	int frame_type = FRAME_ALL;
 	int extended_width = 0;
 	int lines_nb = 0;
-
 	if (titlebuttons) {
 		frame_type = FRAME_NONE;
 		if (strstr (titlebuttons, "Min"))
